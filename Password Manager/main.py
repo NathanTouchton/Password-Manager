@@ -1,5 +1,6 @@
 from tkinter import Tk, Canvas, PhotoImage, Button, Label, Entry, messagebox
 from random import randint, shuffle, choice
+from json import dump, load
 from pyperclip import copy
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
@@ -26,17 +27,35 @@ def add_func():
     website = website_entry.get()
     u_name = u_name_entry.get()
     password = password_entry.get()
+
+    new_data = {
+        website: {
+            "u_name": u_name,
+            "password": password,
+        }
+    }
     if website == "" or u_name == "" or password == "":
         messagebox.showerror(title="Oops", message="Please don't leave any fields empty.")
 
     else:
-        is_ok = messagebox.askokcancel(title=website, message=f"Details entered: {u_name}\nPassword: {password}\nSave?")
+        with open(file="data.json", mode="r") as file:
+            data = load(file)
+            data.update(new_data)
 
-        if is_ok:
-            with open(file="password-list.txt", mode="a") as file:
-                file.write(f"{website} | {u_name} | {password}\n")
-            website_entry.delete(0, "end")
-            password_entry.delete(0, "end")
+        with open(file="data.json", mode="w") as file:
+            dump(data, file, indent=4)
+
+        website_entry.delete(0, "end")
+        password_entry.delete(0, "end")
+
+    # else:
+    #     is_ok = messagebox.askokcancel(title=website, message=f"Details entered: {u_name}\nPassword: {password}\nSave?")
+
+    #     if is_ok:
+    #         with open(file="password-list.txt", mode="a") as file:
+    #             file.write(f"{website} | {u_name} | {password}\n")
+    #         website_entry.delete(0, "end")
+    #         password_entry.delete(0, "end")
 
 # ---------------------------- UI SETUP ------------------------------- #
 
