@@ -1,5 +1,6 @@
 from tkinter import Tk, Canvas, PhotoImage, Button, Label, Entry, messagebox
 from random import randint, shuffle, choice
+from json import dump, load
 from pyperclip import copy
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
@@ -26,17 +27,45 @@ def add_func():
     website = website_entry.get()
     u_name = u_name_entry.get()
     password = password_entry.get()
+
+    new_data = {
+        website: {
+            "u_name": u_name,
+            "password": password,
+        }
+    }
     if website == "" or u_name == "" or password == "":
         messagebox.showerror(title="Oops", message="Please don't leave any fields empty.")
 
     else:
-        is_ok = messagebox.askokcancel(title=website, message=f"Details entered: {u_name}\nPassword: {password}\nSave?")
+        try:
+            with open(file="data.json", mode="r") as file:
+                data = load(file)
+                data.update(new_data)
 
-        if is_ok:
-            with open(file="password-list.txt", mode="a") as file:
-                file.write(f"{website} | {u_name} | {password}\n")
-            website_entry.delete(0, "end")
-            password_entry.delete(0, "end")
+            with open(file="data.json", mode="w") as file:
+                dump(data, file, indent=4)
+        except FileNotFoundError:
+            with open(file="data.json", mode="w") as file:
+                dump(new_data, file, indent=4)
+
+        website_entry.delete(0, "end")
+        password_entry.delete(0, "end")
+
+# ----------------------------Find Password---------------------------- 
+
+def find_password():
+    text = website_entry.get()
+
+    try:
+        with open(file="data.json", mode="r") as file:
+            data = load(file)
+            messagebox.showinfo(title="Password", message=f"Username: {data[text]['u_name']}\nPassword: {data[text]['password']}")
+            print(data[text])
+    except FileNotFoundError:
+        messagebox.showerror(title="No entries", message="Please save some passwords first")
+    except KeyError:
+        messagebox.showerror(title="Enty not found", message="Website not found.")
 
 # ---------------------------- UI SETUP ------------------------------- #
 
@@ -53,9 +82,12 @@ canvas.grid(row=0, column=1)
 website_label = Label(text="Website: ", font=("Arial"))
 website_label.grid(row=1, column=0)
 
-website_entry = Entry(width=41)
-website_entry.grid(row=1, column=1, columnspan=2)
+website_entry = Entry(width=21)
+website_entry.grid(row=1, column=1)
 website_entry.focus()
+
+search_button = Button(text="Search", command=find_password)
+search_button.grid(row=1, column=2)
 
 u_name_label = Label(text="Email/Username: ", font=("Arial"))
 u_name_label.grid(row=2, column=0)
